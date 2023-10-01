@@ -7,6 +7,7 @@ Based on great quadlet demo from https://github.com/ygalblum/quadlet-demo/tree/m
 ## Environment
 
 ```
+System   : Red Hat Enterprise Linux 8.8 (Ootpa)
 Kernel   : 4.18.0-477.21.1
 Selinux  : Enforcing
 Firewalld: Enabled
