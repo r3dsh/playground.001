@@ -4,6 +4,14 @@ RHEL 8 Quadlet playground
 
 Based on great quadlet demo from https://github.com/ygalblum/quadlet-demo/tree/main
 
+## Environment
+
+```
+Kernel   : 4.18.0-477.21.1
+Selinux  : Enforcing
+Firewalld: Enabled
+```
+
 ## Setup
 
 Install ansible galaxy dependencies
