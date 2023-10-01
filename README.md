@@ -40,3 +40,6 @@ Are we there yet?
 watch -c "curl -sk https://localhost:8000 | grep -i wordpress > /dev/null && echo OK || echo 'NOT THERE YET'"
 ```
 
+## Warning
+
+This is playground repo. It's not intended to be used in production environment. I strongly advise to look at the playbook, roles and how they work, especially xfs_storage_*. If not careful you might loose all your data!
