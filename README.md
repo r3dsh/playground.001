@@ -13,6 +13,15 @@ Selinux  : Enforcing
 Firewalld: Enabled
 ```
 
+```
+$ lsblk | grep 'sd[a-z]'
+
+sda                  8:0    0   32G  0 disk
+├─sda1               8:1    0    1G  0 part /boot
+└─sda2               8:2    0   31G  0 part
+sdb                  8:16   0  100G  0 disk
+```
+
 ## Setup
 
 Install ansible galaxy dependencies
