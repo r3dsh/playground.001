@@ -11,6 +11,7 @@ System   : Red Hat Enterprise Linux 8.8 (Ootpa)
 Kernel   : 4.18.0-477.21.1
 Selinux  : Enforcing
 Firewalld: Enabled
+Podman   : 4.4.1
 ```
 
 ```
