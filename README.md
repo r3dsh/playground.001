@@ -2,6 +2,8 @@
 
 RHEL 8 Quadlet playground
 
+Based on great quadlet demo from https://github.com/ygalblum/quadlet-demo/tree/main
+
 ## Setup
 
 Install ansible galaxy dependencies
