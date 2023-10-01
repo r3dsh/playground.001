@@ -1,0 +1,14 @@
+# This file is managed by Ansible. Please do not edit manually.
+[Unit]
+Description=podman network reload
+Wants=firewalld.service
+After=firewalld.service
+PartOf=firewalld.service
+
+[Service]
+Type=simple
+RemainAfterExit=yes
+ExecStart=/usr/bin/podman network reload --all
+
+[Install]
+WantedBy=default.target

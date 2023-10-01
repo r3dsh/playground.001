@@ -1,0 +1,11 @@
+---
+drive_name: "/dev/sdb"  # The drive name you want to use, e.g., /dev/sdb
+volume_group: datavg
+volumes:
+  - name: vol1
+    size: 5G
+    mount_point: /mnt/vol1
+  - name: vol2
+    size: 10G
+    mount_point: /mnt/vol2
+force_recreate: no  # Set this to "yes" to forcefully recreate volumes

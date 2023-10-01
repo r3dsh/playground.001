@@ -1,0 +1,12 @@
+# This file is managed by Ansible. Please do not edit manually.
+[Unit]
+Description=Persistent Journal Storage Bind
+
+[Mount]
+What=/data02/_journal
+Where=/var/log/journal
+Type=none
+Options=bind
+
+[Install]
+WantedBy=local-fs.target

@@ -1,0 +1,97 @@
+---
+# roles/xfs_storage_setup/tasks/main.yml
+
+- name: Check if the drive is already a PV
+  command: pvs --noheadings "{{ drive_name }}"
+  ignore_errors: yes
+  register: pv_check_result
+  changed_when: false
+  failed_when: false
+
+- set_fact:
+    recreate: "{{ (force_recreate | bool) and (pv_check_result.rc == 0) or (pv_check_result.rc != 0) }}"
+
+- name: Unmount existing mount points
+  ansible.builtin.mount:
+    state: unmounted
+    path: "{{ item.mount_point }}"
+  loop: "{{ volumes }}"
+  when: recreate == True
+  ignore_errors: yes
+  register: unmount_result
+
+- name: Check if existing mount points were unmounted
+  ansible.builtin.shell: "mountpoint -q {{ item.mount_point }}"
+  ignore_errors: yes
+  failed_when: false
+  changed_when: false
+  when: recreate == True
+  with_items: "{{ volumes }}"
+
+- name: Remove VG if it exists
+  command: vgremove -f "{{ volume_group }}"
+  when: recreate == True
+  ignore_errors: yes
+  changed_when: false
+  failed_when: false
+
+- name: Remove PV if it exists
+  command: pvremove -ff "{{ drive_name }}"
+  when: recreate == True
+  ignore_errors: yes
+
+- name: Create Physical Volume (PV)
+  command: pvcreate "{{ drive_name }}"
+  when: recreate == True
+  ignore_errors: yes
+  register: pv_result
+  changed_when: true
+
+- name: Create Volume Group (VG)
+  command: vgcreate "{{ volume_group }}" "{{ drive_name }}"
+  when: recreate == True and ('vg_result' not in vars or vg_result is failed)
+  ignore_errors: yes
+  register: vg_result
+  changed_when: true
+
+- name: Create Logical Volumes (LVs)
+  lvol:
+    vg: "{{ volume_group }}"
+    lv: "{{ item.name }}"
+    size: "{{ item.size }}"
+    pvs: "{{ drive_name }}"
+  when: recreate == True and ('lv_result' not in vars or lv_result.results | selectattr('ansible_loop_var.name', 'equalto', item.name) | list | first is failed)
+  with_items: "{{ volumes }}"
+
+- name: Create XFS filesystem on LVs
+  filesystem:
+    fstype: xfs
+    dev: "/dev/{{ volume_group }}/{{ item.name }}"
+  when: recreate and (vg_result is succeeded)
+  with_items: "{{ volumes }}"
+
+- name: Update /etc/fstab entries
+  replace:
+    path: /etc/fstab
+    regexp: "^/dev/.*{{ item.mount_point }}.*"
+    replace: "/dev/mapper/{{ volume_group }}-{{ item.name }} {{ item.mount_point }} xfs defaults 0 0"
+  when: recreate and (vg_result is succeeded)
+  with_items: "{{ volumes }}"
+
+- name: Add /etc/fstab entries if they don't exist
+  lineinfile:
+    path: /etc/fstab
+    line: "/dev/mapper/{{ volume_group }}-{{ item.name }} {{ item.mount_point }} xfs defaults 0 0"
+    insertafter: EOF
+  when: recreate and (vg_result is succeeded)
+  with_items: "{{ volumes }}"
+
+- name: Create target mount point directories if they don't exist
+  ansible.builtin.file:
+    path: "{{ item.mount_point }}"
+    state: directory
+  loop: "{{ volumes }}"
+  when: recreate and (vg_result is succeeded)
+
+- name: Trigger 'mount -a' if /etc/fstab was updated
+  command: mount -a

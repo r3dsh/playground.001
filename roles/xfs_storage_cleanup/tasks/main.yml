@@ -1,0 +1,36 @@
+---
+# roles/xfs_storage_cleanup/tasks/main.yml
+# pvs --noheadings /dev/sdb | grep appvg
+# check exit code
+
+- name: Unmount existing mount points
+  ansible.builtin.mount:
+    state: unmounted
+    path: "{{ item.mount_point }}"
+  loop: "{{ volumes }}"
+  ignore_errors: yes
+  register: unmount_result
+
+- name: Check if existing mount points were unmounted
+  ansible.builtin.shell: "mountpoint -q {{ item.mount_point }}"
+  ignore_errors: yes
+  failed_when: false
+  changed_when: false
+  with_items: "{{ volumes }}"
+
+- name: Remove VG if it exists
+  command: vgremove -f "{{ volume_group }}"
+  ignore_errors: yes
+  changed_when: false
+  failed_when: false
+
+- name: Remove PV if it exists
+  command: pvremove -ff "{{ drive_name }}"
+  ignore_errors: yes
+
+- name: Remove related /etc/fstab entries
+  lineinfile:
+    path: /etc/fstab
+    regexp: '^/dev/mapper/{{ volume_group }}-{{ item.name }}.*'
+    state: absent
+  with_items: "{{ volumes }}"
